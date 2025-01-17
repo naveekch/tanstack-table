@@ -49,3 +49,41 @@ Use Warehouse Metering History to verify recent activity.
 Investigate DynamoDB for potential corruption or missing records.
 Confirm permissions for accessing all relevant tasks and views.
 Reevaluate onboarding limitations to ensure historical data isn’t lost.
+
+
+Slingshot.Warehouse:
+Type: Likely a view or table that consolidates warehouse data from various sources.
+Content: Includes all warehouses, both managed and unmanaged.
+Purpose:
+Used as the primary reference for the system to display or process warehouses.
+Pulls data from warehouse events history, which tracks activities and events related to warehouses.
+Behavior:
+Warehouses must have associated events in the warehouse events history table to appear in Slingshot.Warehouse.
+If a warehouse hasn’t been used (e.g., no events post-renaming), it won’t show up here.
+Slingshot_Warehouse:
+Type: Refers to the WH table stored in DynamoDB.
+Content: Represents assigned and managed warehouses.
+Purpose:
+Tracks warehouses that are already assigned to business orders.
+Synchronizes back to Snowflake and appears in Slingshot_Warehouse.
+Behavior:
+Managed warehouses from DynamoDB are added to this table.
+Used in conjunction with Slingshot.Warehouse to determine unassigned warehouses.
+Relationship Between Them:
+Unassigned Warehouses:
+Derived by subtracting Slingshot_Warehouse (managed) from Slingshot.Warehouse (all warehouses).
+Formula: Unassigned = Slingshot.Warehouse - Slingshot_Warehouse.
+Synchronization:
+Data flows from the warehouse events history to Slingshot.Warehouse.
+Managed warehouses move to Slingshot_Warehouse after being processed and assigned.
+Key Differences:
+Aspect	Slingshot.Warehouse	Slingshot_Warehouse
+Source	Events history, external sources	DynamoDB (WH table)
+Data Scope	All warehouses	Managed and assigned warehouses
+Purpose	Tracks all activities	Focuses on business orders
+Exclusion Logic	Needs events to appear	Contains assigned warehouses
+Conclusion:
+Slingshot.Warehouse is the broader dataset that captures all warehouses and their events, while Slingshot_Warehouse specifically tracks warehouses managed within the system.
+For troubleshooting missing warehouses:
+Ensure the warehouse has events in the history table to appear in Slingshot.Warehouse.
+Verify if the warehouse is in DynamoDB and synced to Slingshot_Warehouse
