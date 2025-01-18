@@ -87,3 +87,5 @@ Slingshot.Warehouse is the broader dataset that captures all warehouses and thei
 For troubleshooting missing warehouses:
 Ensure the warehouse has events in the history table to appear in Slingshot.Warehouse.
 Verify if the warehouse is in DynamoDB and synced to Slingshot_Warehouse
+
+https://af18b97f-b751-4635-a2a5-8f5c2e2e679b.mock.pstmn.io/warehouse
