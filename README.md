@@ -23,3 +23,33 @@ Next Steps:
 🔹 Investigate potential upstream changes that could be impacting savings estimates.
 🔹 Backtrack SQL logic if required to isolate discrepancies.
 
+CREATE OR REPLACE FUNCTION MY_CUSTOMER_DB.PUBLIC.REDACT_QUERY_TEXT_SQL(QUERY_TEXT STRING)
+RETURNS STRING
+AS
+$$
+    REGEXP_REPLACE(
+        REGEXP_REPLACE(
+            REGEXP_REPLACE(
+                REGEXP_REPLACE(
+                    REGEXP_REPLACE(
+                        REGEXP_REPLACE(
+                            REGEXP_REPLACE(
+                                REGEXP_REPLACE(
+                                    QUERY_TEXT,
+                                    '\'[^\']*\'', '\'REDACTED\''                          -- single-quoted strings
+                                ),
+                                '\\$\\$.*?\\$\\$', '\\\\$\\\\$REDACTED\\\\$\\\\$', 1, 0, 'i'  -- double-dollar strings (escaped for runtime)
+                            ),
+                            'bf?ile://.*?([=:]|$)', 'REDACTED', 1, 0, 'i'                -- file:// or bfile://
+                        ),
+                        '([=:]\\s*)\\d+', '\\10'                                          -- int numbers (no lookbehind)
+                    ),
+                    '\\b\\d+\\.\\d+\\b', '0.0'                                            -- float numbers
+                ),
+                '([=:])(@[a-zA-Z0-9\\-_]+\\.[a-z]+)', '\\1@REDACTED'                     -- staged file paths
+            ),
+            '/\\*.*?\\*/', '/* REDACTED */', 1, 0, 's'                                    -- block comments
+        ),
+        '--.*?$', '-- REDACTED', 1, 0, 'm'                                               -- single-line -- comments
+    )
+$$;
